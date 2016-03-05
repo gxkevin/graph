@@ -1,3 +1,3 @@
 # graph
 To attend huawei codecraft event
-so first viem the .png file.
+so first viem the .jpg file.
