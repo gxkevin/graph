@@ -13,18 +13,21 @@
 #include <map>
 using namespace std;
 typedef enum { UNDISCOVERED, INSTACK, AVAILABLE, INQUEUE } VertexStatus;
+typedef enum {RECORDED, UNUSED, ABANDONED} EdgeStatus;
 class edge {
 private:
 	int eId;//编号
 	//int startId;//出射
 	int endId;//入射
 	int weight;//权重
+	EdgeStatus eStatus;
 public:
-	edge(int id, int end, int w)
-		:eId(id), endId(end), weight(w) {}//初始化边
+	edge(int id, int end, int w, EdgeStatus e = UNUSED)
+		:eId(id), endId(end), weight(w),eStatus(e) {}//初始化边
 	int getEId() { return eId; }//获取边的编号
 	int getEndId() { return endId; }//获得入射顶点编号
 	int getWeight() { return weight; }//获得
+	EdgeStatus getStatus() { return eStatus; }
 };
 class vertex {
 private:
@@ -38,6 +41,7 @@ public:
 	vertex(int id, VertexStatus status = UNDISCOVERED)
 		:vId(id), vStatus(status) {}
 	int VId() { return vId; }//获得边id
+	void setStatus(VertexStatus s) { vStatus = s; }
 	VertexStatus status() { return vStatus; }//获得顶点的状态
 	void newEdge(edge* e) { vec_edge.push_back(e); }//创建新的边
 	vector<edge*>& getEdge() { return vec_edge; }//获得边的vector
@@ -47,17 +51,30 @@ private:
 	map<int,vertex*> Map;
 	//set<int,edge*> Edges;//边集
 	//set<vertex*> Vertexs;//点集
-	set<vertex*> MustPassing;//必须经过的点
+	int start_id;//起点
+	int end_id;//终点
 	int MinWeight;//最小权重值，用作比较
+	set<vertex*> MustPassing;//必须经过的点
 	int num_v;//顶点数量
 	int	num_e;//边数量
 public:
-	graph(const char* gfile, const char* pfile);
+	graph(const char* gfile, const char* pfile);//构造函数
 	//vector<int>& split(const string &str, char delim, vector<int> &elems_int);
 	vector<int>& split(const string &str, const string &delimiters, vector<int> &elems_int);//用于多个delimiters
 	void print();//用来打印图的信息
-	//stack<edge>* DFS_shortPath(int start, int end);
+	stack<edge>* DFS_shortPath(int start, int end);
 };
+stack<edge>* graph::DFS_shortPath(int start, int end)
+{
+	stack<int> pathOfVertexStack;
+	pathOfVertexStack.push(start);
+	vertex* currentVertex = Map.find(start)->second;
+	currentVertex->setStatus(INSTACK);
+	while (!pathOfVertexStack.empty()) {
+
+	}
+	return NULL;
+}
 graph::graph(const char* gfile, const char* pfile) {
 //构造函数graph的作用，接受两个.csv文件的路径，初始化点集和边集，初始化MustPassing点集，
 	num_v = num_e = 0;
@@ -70,8 +87,8 @@ graph::graph(const char* gfile, const char* pfile) {
 		split(buffer, ",", int_from_file);//返回处理后int的vector
 		//边信息录入
 		edge* read_edge = new edge(int_from_file[0], int_from_file[2], int_from_file[3]);
-		auto iterator_start = Map.find(int_from_file[1]);
-		auto iterator_end = Map.find(int_from_file[2]);
+		map<int, vertex*>::iterator iterator_start = Map.find(int_from_file[1]);//iterator_start指向出射点是否存在
+		map<int, vertex*>::iterator iterator_end = Map.find(int_from_file[2]);
 		if (iterator_start != Map.end()) {//如果出顶点已经存在于map中
 			iterator_start->second->newEdge(read_edge);//单建立一个边
 		}
@@ -90,16 +107,18 @@ graph::graph(const char* gfile, const char* pfile) {
 		//cout << "读取成功一个" << endl;
 	}//循环结束时，图构造完毕
 	outFile.close();
-
+	//下面对第二个.csv文件做处理
 	outFile.open(pfile, ios::in);//打开MustPassing文件
-	if(!outFile.eof()) {//读取MustPassing的信息
-		string buffer;
-		getline(outFile, buffer);
-		vector<int> int_from_file;
-		split(buffer, ",|", int_from_file);//返回处理后int的vector
-	}
+	string buffer;
+	getline(outFile, buffer);
+	vector<int> int_from_file;
+	split(buffer, ",|", int_from_file);//返回处理后int的vector
+	start_id = int_from_file[0];
+	end_id = int_from_file[1];//起点和终点一定在第一二位置上
+	for (int i = 2; i < int_from_file.size(); i++) {
+		MustPassing.insert(Map.find(int_from_file[i])->second);
+	}//查找并添加到MustPassing中去
 	outFile.close();
-
 }
 //vector<int>& graph::split(const string &str, char delim, vector<int> &elems_int) {
 //	istringstream iss(str);
@@ -126,10 +145,10 @@ vector<int>& graph::split(const string &str, const string &delimiters, vector<in
 		}
 		prev = pos + 1;
 	}
-	/*if (prev < str.size()) {
+	if (prev < str.size()) {
 		int c = stoi(string(str, prev, str.size() - prev));
 		elems_int.push_back(c);
-	}*/
+	}
 	return elems_int;
 }
 void graph::print()//打印图的一些信息
