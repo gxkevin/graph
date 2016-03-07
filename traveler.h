@@ -12,112 +12,122 @@
 #include <cstdlib>
 #include <map>
 using namespace std;
-typedef enum { UNDISCOVERED, INSTACK, AVAILABLE, INQUEUE } VertexStatus;
-typedef enum {RECORDED, UNUSED, ABANDONED} EdgeStatus;
+typedef enum { CANUSE, INSTACK, INQUEUE } VertexStatus;
+typedef enum {RECORDED, AVAILABLE} EdgeStatus;
 class edge {
 private:
-	int eId;//±àºÅ
-	//int startId;//³öÉä
-	int endId;//ÈëÉä
-	int weight;//È¨ÖØ
+	int eId;//ç¼–å·
+	//int startId;//å‡ºå°„
+	int endId;//å…¥å°„
+	int weight;//æƒé‡
 	EdgeStatus eStatus;
 public:
-	edge(int id, int end, int w, EdgeStatus e = UNUSED)
-		:eId(id), endId(end), weight(w),eStatus(e) {}//³õÊ¼»¯±ß
-	int getEId() { return eId; }//»ñÈ¡±ßµÄ±àºÅ
-	int getEndId() { return endId; }//»ñµÃÈëÉä¶¥µã±àºÅ
-	int getWeight() { return weight; }//»ñµÃ
+	edge(int id, int end, int w, EdgeStatus e = AVAILABLE)
+		:eId(id), endId(end), weight(w),eStatus(e) {}//åˆå§‹åŒ–è¾¹
+	int getEId() { return eId; }//è·å–è¾¹çš„ç¼–å·
+	int getEndId() { return endId; }//è·å¾—å…¥å°„é¡¶ç‚¹ç¼–å·
+	int getWeight() { return weight; }//è·å¾—
 	EdgeStatus getStatus() { return eStatus; }
 };
 class vertex {
 private:
-	int vId;//±àºÅ
-	vector<edge*> vec_edge;//ËùÓĞ´Ó±¾¶¥µã³ö·¢µÄ±ßµÄvector
-	//vector<edge*> arc;//»¡
-	VertexStatus vStatus;//¶¥µãµÄ×´Ì¬
+	int vId;//ç¼–å·
+	vector<edge*> vec_edge;//æ‰€æœ‰ä»æœ¬é¡¶ç‚¹å‡ºå‘çš„è¾¹çš„vector
+	//vector<edge*> arc;//å¼§
+	VertexStatus vStatus;//é¡¶ç‚¹çš„çŠ¶æ€
 public:
-	vertex(int id, edge* e, VertexStatus status = UNDISCOVERED)
-		:vId(id), vStatus(status)  {	newEdge(e);   }//³õÊ¼»¯
-	vertex(int id, VertexStatus status = UNDISCOVERED)
+	vertex(int id, edge* e, VertexStatus status = CANUSE)
+		:vId(id), vStatus(status)  {	newEdge(e);   }//åˆå§‹åŒ–
+	vertex(int id, VertexStatus status = CANUSE)
 		:vId(id), vStatus(status) {}
-	int VId() { return vId; }//»ñµÃ±ßid
+	int VId() { return vId; }//è·å¾—è¾¹id
 	void setStatus(VertexStatus s) { vStatus = s; }
-	VertexStatus status() { return vStatus; }//»ñµÃ¶¥µãµÄ×´Ì¬
-	void newEdge(edge* e) { vec_edge.push_back(e); }//´´½¨ĞÂµÄ±ß
-	vector<edge*>& getEdge() { return vec_edge; }//»ñµÃ±ßµÄvector
+	VertexStatus status() { return vStatus; }//è·å¾—é¡¶ç‚¹çš„çŠ¶æ€
+	void newEdge(edge* e) { vec_edge.push_back(e); }//åˆ›å»ºæ–°çš„è¾¹
+	vector<edge*>& getEdge() { return vec_edge; }//è·å¾—è¾¹çš„vector
+	int getEdgeQuantity() { return vec_edge.size(); }//è·å–å‡ºå¼§çš„æ•°é‡
+	EdgeStatus getEdgeStatus(int n) { return vec_edge[n]->getStatus(); }
+
 };
 class graph {
 private:
 	map<int,vertex*> Map;
-	//set<int,edge*> Edges;//±ß¼¯
-	//set<vertex*> Vertexs;//µã¼¯
-	int start_id;//Æğµã
-	int end_id;//ÖÕµã
-	int MinWeight;//×îĞ¡È¨ÖØÖµ£¬ÓÃ×÷±È½Ï
-	set<vertex*> MustPassing;//±ØĞë¾­¹ıµÄµã
-	int num_v;//¶¥µãÊıÁ¿
-	int	num_e;//±ßÊıÁ¿
+	//set<int,edge*> Edges;//è¾¹é›†
+	//set<vertex*> Vertexs;//ç‚¹é›†
+	int start_id;//èµ·ç‚¹
+	int end_id;//ç»ˆç‚¹
+	int MinWeight;//æœ€å°æƒé‡å€¼ï¼Œç”¨ä½œæ¯”è¾ƒ
+	set<vertex*> MustPassing;//å¿…é¡»ç»è¿‡çš„ç‚¹
+	int num_v;//é¡¶ç‚¹æ•°é‡
+	int	num_e;//è¾¹æ•°é‡
 public:
-	graph(const char* gfile, const char* pfile);//¹¹Ôìº¯Êı
+	graph(const char* gfile, const char* pfile);//æ„é€ å‡½æ•°
 	//vector<int>& split(const string &str, char delim, vector<int> &elems_int);
-	vector<int>& split(const string &str, const string &delimiters, vector<int> &elems_int);//ÓÃÓÚ¶à¸ödelimiters
-	void print();//ÓÃÀ´´òÓ¡Í¼µÄĞÅÏ¢
-	stack<edge>* DFS_shortPath(int start, int end);
+	vector<int>& split(const string &str, const string &delimiters, vector<int> &elems_int);//ç”¨äºå¤šä¸ªdelimiters
+	void print();//ç”¨æ¥æ‰“å°å›¾çš„ä¿¡æ¯
+	stack<edge>* DFS_shortPath(int start, int end);//æ·±åº¦ä¼˜å…ˆæœç´¢æœ€çŸ­è·¯å¾„
+	vertex* nextVertex(vertex* topVertex);
+	void dfs_shortPath(vertex* currentVertex, int outdegree);
 };
-stack<edge>* graph::DFS_shortPath(int start, int end)
-{
-	stack<int> pathOfVertexStack;
-	pathOfVertexStack.push(start);
-	vertex* currentVertex = Map.find(start)->second;
-	currentVertex->setStatus(INSTACK);
-	while (!pathOfVertexStack.empty()) {
-
+stack<edge>* graph::DFS_shortPath(int start, int end){
+	stack<int> pathOfVertexStack;//ä¿å­˜è·¯å¾„
+	pathOfVertexStack.push(start);//å°†èµ·ç‚¹ç´¢å¼•æ”¾å…¥è·¯å¾„æ ˆä¸­
+	vertex* topVertex = Map.find(start)->second;
+	topVertex->setStatus(INSTACK);//è®¾ç½®èµ·ç‚¹çŠ¶æ€
+	int outdegree = 0;//ç”¨æ¥ä½œä¸ºè®¿é—®å¼§ç»ˆç‚¹çš„ç´¢å¼•
+	while (outdegree < topVertex->getEdgeQuantity()) {
+		if (AVAILABLE == topVertex->getEdgeStatus(outdegree)) {
+			dfs_shortPath(topVertex, outdegree);
+		}
 	}
 	return NULL;
 }
+vertex* graph::nextVertex(vertex* topVertex) {
+
+}
 graph::graph(const char* gfile, const char* pfile) {
-//¹¹Ôìº¯ÊıgraphµÄ×÷ÓÃ£¬½ÓÊÜÁ½¸ö.csvÎÄ¼şµÄÂ·¾¶£¬³õÊ¼»¯µã¼¯ºÍ±ß¼¯£¬³õÊ¼»¯MustPassingµã¼¯£¬
+//æ„é€ å‡½æ•°graphçš„ä½œç”¨ï¼Œæ¥å—ä¸¤ä¸ª.csvæ–‡ä»¶çš„è·¯å¾„ï¼Œåˆå§‹åŒ–ç‚¹é›†å’Œè¾¹é›†ï¼Œåˆå§‹åŒ–MustPassingç‚¹é›†ï¼Œ
 	num_v = num_e = 0;
 	fstream outFile;
-	outFile.open(gfile, ios::in);//´ò¿ªµã¼¯±ß¼¯ÎÄ¼ş
-	while (!outFile.eof()) {//Ò»ĞĞÒ»ĞĞµØ¶Á
-		string buffer;//»º´æÃ¿ĞĞµÄÊı¾İ
-		getline(outFile, buffer);//¶ÁÈ¡ÎÄ¼şÖĞµÄÒ»ĞĞµ½bufferÖĞ
+	outFile.open(gfile, ios::in);//æ‰“å¼€ç‚¹é›†è¾¹é›†æ–‡ä»¶
+	while (!outFile.eof()) {//ä¸€è¡Œä¸€è¡Œåœ°è¯»
+		string buffer;//ç¼“å­˜æ¯è¡Œçš„æ•°æ®
+		getline(outFile, buffer);//è¯»å–æ–‡ä»¶ä¸­çš„ä¸€è¡Œåˆ°bufferä¸­
 		vector<int> int_from_file;
-		split(buffer, ",", int_from_file);//·µ»Ø´¦ÀíºóintµÄvector
-		//±ßĞÅÏ¢Â¼Èë
+		split(buffer, ",", int_from_file);//è¿”å›å¤„ç†åintçš„vector
+		//è¾¹ä¿¡æ¯å½•å…¥
 		edge* read_edge = new edge(int_from_file[0], int_from_file[2], int_from_file[3]);
-		map<int, vertex*>::iterator iterator_start = Map.find(int_from_file[1]);//iterator_startÖ¸Ïò³öÉäµãÊÇ·ñ´æÔÚ
+		map<int, vertex*>::iterator iterator_start = Map.find(int_from_file[1]);//iterator_startæŒ‡å‘å‡ºå°„ç‚¹æ˜¯å¦å­˜åœ¨
 		map<int, vertex*>::iterator iterator_end = Map.find(int_from_file[2]);
-		if (iterator_start != Map.end()) {//Èç¹û³ö¶¥µãÒÑ¾­´æÔÚÓÚmapÖĞ
-			iterator_start->second->newEdge(read_edge);//µ¥½¨Á¢Ò»¸ö±ß
+		if (iterator_start != Map.end()) {//å¦‚æœå‡ºé¡¶ç‚¹å·²ç»å­˜åœ¨äºmapä¸­
+			iterator_start->second->newEdge(read_edge);//å•å»ºç«‹ä¸€ä¸ªè¾¹
 		}
-		else {//³ö¶¥µã²»´æÔÚÓëmapÖĞ,½¨Á¢Ò»¸ö±ßºÍÒ»¸öµã
+		else {//å‡ºé¡¶ç‚¹ä¸å­˜åœ¨ä¸mapä¸­,å»ºç«‹ä¸€ä¸ªè¾¹å’Œä¸€ä¸ªç‚¹
 			//vector<edge*> vec_edge; vec_edge.push_back(read_edge);
 			vertex* read_vertex = new vertex(int_from_file[1], read_edge);
 			Map.insert(pair<int, vertex*>(int_from_file[1], read_vertex));
 			num_v++;
-		}//Ö÷Òª¿¼ÂÇÄÄĞ©³ö¶ÈÎª0µÄvertex
+		}//ä¸»è¦è€ƒè™‘å“ªäº›å‡ºåº¦ä¸º0çš„vertex
 		if (iterator_end == Map.end()) {
 			vertex* read_vertex = new vertex(int_from_file[2]);
 			num_v++;
 		}
-		num_e++;//vertexºÍedgeÊıÁ¿¼ÇÂ¼Ôö¼Ó
+		num_e++;//vertexå’Œedgeæ•°é‡è®°å½•å¢åŠ 
 		//cout << int_from_file[0] << endl;
-		//cout << "¶ÁÈ¡³É¹¦Ò»¸ö" << endl;
-	}//Ñ­»·½áÊøÊ±£¬Í¼¹¹ÔìÍê±Ï
+		//cout << "è¯»å–æˆåŠŸä¸€ä¸ª" << endl;
+	}//å¾ªç¯ç»“æŸæ—¶ï¼Œå›¾æ„é€ å®Œæ¯•
 	outFile.close();
-	//ÏÂÃæ¶ÔµÚ¶ş¸ö.csvÎÄ¼ş×ö´¦Àí
-	outFile.open(pfile, ios::in);//´ò¿ªMustPassingÎÄ¼ş
+	//ä¸‹é¢å¯¹ç¬¬äºŒä¸ª.csvæ–‡ä»¶åšå¤„ç†
+	outFile.open(pfile, ios::in);//æ‰“å¼€MustPassingæ–‡ä»¶
 	string buffer;
 	getline(outFile, buffer);
 	vector<int> int_from_file;
-	split(buffer, ",|", int_from_file);//·µ»Ø´¦ÀíºóintµÄvector
+	split(buffer, ",|", int_from_file);//è¿”å›å¤„ç†åintçš„vector
 	start_id = int_from_file[0];
-	end_id = int_from_file[1];//ÆğµãºÍÖÕµãÒ»¶¨ÔÚµÚÒ»¶şÎ»ÖÃÉÏ
+	end_id = int_from_file[1];//èµ·ç‚¹å’Œç»ˆç‚¹ä¸€å®šåœ¨ç¬¬ä¸€äºŒä½ç½®ä¸Š
 	for (int i = 2; i < int_from_file.size(); i++) {
 		MustPassing.insert(Map.find(int_from_file[i])->second);
-	}//²éÕÒ²¢Ìí¼Óµ½MustPassingÖĞÈ¥
+	}//æŸ¥æ‰¾å¹¶æ·»åŠ åˆ°MustPassingä¸­å»
 	outFile.close();
 }
 //vector<int>& graph::split(const string &str, char delim, vector<int> &elems_int) {
@@ -134,14 +144,14 @@ graph::graph(const char* gfile, const char* pfile) {
 vector<int>& graph::split(const string &str, const string &delimiters, vector<int> &elems_int) {
 	string::size_type pos, prev = 0;
 	while ((pos = str.find_first_of(delimiters, prev)) != string::npos) {
-		//pos±íÊ¾ÔÚstr(µÚprev¸ö×Ö·ûÖ®ºó)ÖĞ·¢ÏÖdelimiters(·Ö¸ô·û)ÖĞµÄ
+		//posè¡¨ç¤ºåœ¨str(ç¬¬prevä¸ªå­—ç¬¦ä¹‹å)ä¸­å‘ç°delimiters(åˆ†éš”ç¬¦)ä¸­çš„
 		if (pos > prev) {
-			if (str[pos]=='\n') break;//ÔÚprevÖ®ºóµÄstrÖĞÃ»ÓĞÕÒµ½delimiteres
-			//if (1 == pos - prev) break;//ÔÚprevÖ®ºóµÄstrÖĞÃ»ÓĞÕÒµ½delimiteres
+			if (str[pos]=='\n') break;//åœ¨prevä¹‹åçš„strä¸­æ²¡æœ‰æ‰¾åˆ°delimiteres
+			//if (1 == pos - prev) break;//åœ¨prevä¹‹åçš„strä¸­æ²¡æœ‰æ‰¾åˆ°delimiteres
 			//cout << str << endl;
 			int c = stoi(string(str, prev, pos - prev));
 			elems_int.push_back(c);
-			//elems.emplace_back(str, prev, );//Í¨¹ıemplace_back¿ÉÒÔÖ±½ÓÔÚvector×îºó·ÖÅäÄÚ´æ´´½¨object
+			//elems.emplace_back(str, prev, );//é€šè¿‡emplace_backå¯ä»¥ç›´æ¥åœ¨vectoræœ€ååˆ†é…å†…å­˜åˆ›å»ºobject
 		}
 		prev = pos + 1;
 	}
@@ -151,7 +161,7 @@ vector<int>& graph::split(const string &str, const string &delimiters, vector<in
 	}
 	return elems_int;
 }
-void graph::print()//´òÓ¡Í¼µÄÒ»Ğ©ĞÅÏ¢
+void graph::print()//æ‰“å°å›¾çš„ä¸€äº›ä¿¡æ¯
 {
 	for (auto it = Map.begin(); it != Map.end(); it++) {
 		cout << "vertex's id: " << it->first << "    status:" << it->second->status() << endl;
