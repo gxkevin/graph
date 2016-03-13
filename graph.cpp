@@ -1,16 +1,22 @@
-// graph.cpp : ¶¨Òå¿ØÖÆÌ¨Ó¦ÓÃ³ÌĞòµÄÈë¿Úµã¡£
+// graph.cpp : å®šä¹‰æ§åˆ¶å°åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
 #include "traveler.h"
+#include <ctime>
 int main()
 {
-	cout << "ÇëÊäÈëÁ½¸ö.csvÎÄ¼şµÄÂ·¾¶:" << endl;
-	char* csv1 = new char[100];
-	char* csv2 = new char[100];
+	clock_t start, end;
+	start = clock();
+	cout << "è¯·è¾“å…¥ä¸¤ä¸ª.csvæ–‡ä»¶çš„è·¯å¾„:" << endl;
+	//char* csv1 = new char[100];
+	//char* csv2 = new char[100];
 	//cin >> csv1; cin >> csv2;
-	graph GG("test1.cvs", "test2.cvs");
+	graph GG("GeneratedTopo.csv", "GeneratedDemand.csv");
+	GG.printFinalPath();
 	//GG.print();
+	end = clock();
+	cout << endl << "ç”¨æ—¶ï¼š " << (double)(end - start) / CLK_TCK << endl;
 	cin.get();
     return 0;
 }
